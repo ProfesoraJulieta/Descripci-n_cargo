@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Pro - Simulador de Perfiles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f2ef;
+            /* LinkedIn background color */
+        }
+
+        .profile-card {
+            background-color: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .form-select {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            padding: 8px;
+            border-radius: 4px;
+            transition: border-color 0.2s;
+            border-width: 2px;
+            background-color: white;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #0a66c2;
+            /* LinkedIn blue */
+        }
+
+        .highlight {
+            background-color: #fef08a;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .correct-answer {
+            border-color: #22c55e;
+        }
+
+        .incorrect-answer {
+            border-color: #ef4444;
+        }
+
+        .profile-strength-bar {
+            background-color: #e0e0e0;
+            border-radius: 9999px;
+            height: 8px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .profile-strength-progress {
+            background-color: #0a66c2;
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+
+<body class="p-4 sm:p-6 md:p-8">
+    <div class="max-w-7xl mx-auto">
+
+        <!-- Panel de Control -->
+        <div class="bg-white p-4 rounded-lg shadow-md mb-6 border">
+            <div class="flex justify-center items-center gap-3 mb-2">
+                <!-- Logo de Profile Pro -->
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z"
+                        fill="#dbeafe" />
+                    <path
+                        d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z"
+                        stroke="#0a66c2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M14 2V8H20" stroke="#0a66c2" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <circle cx="12" cy="14" r="2" stroke="#0a66c2" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M10 19C10 17.8954 10.8954 17 12 17C13.1046 17 14 17.8954 14 19" stroke="#0a66c2"
+                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <h2 class="text-3xl font-bold text-gray-800">Profile Pro</h2>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-600 mb-4 text-center">Consola de Reclutamiento</h3>
+            <div class="flex flex-col gap-4 mb-4">
+                <button id="btnNewCase"
+                    class="w-full bg-blue-700 text-white px-4 py-3 rounded-md text-lg font-bold hover:bg-blue-800 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="inline-block mr-2">
+                        <path d="M17 18a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2" />
+                        <rect width="18" height="18" x="3" y="4" rx="2" />
+                        <circle cx="12" cy="10" r="2" />
+                        <line x1="8" x2="8" y1="2" y2="4" />
+                        <line x1="16" x2="16" y1="2" y2="4" />
+                    </svg>
+                    Buscar Nuevo Candidato
+                </button>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button id="btnHints"
+                        class="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors">💡
+                        Mostrar Pistas</button>
+                    <button id="btnCheck"
+                        class="w-full bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors">✔️
+                        Verificar Perfil</button>
+                    <button id="btnShowAnswers"
+                        class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">👀
+                        Autocompletar</button>
+                    <button id="btnClear"
+                        class="w-full bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors">Limpiar
+                        Perfil</button>
+                </div>
+            </div>
+            <p id="completion-message" class="font-semibold mt-2 h-6 text-center"></p>
+        </div>
+
+        <!-- Layout de Perfil -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Columna Izquierda: Perfil y Detalles -->
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                <!-- Tarjeta de Perfil Principal -->
+                <div class="profile-card shadow-md">
+                    <div class="h-32 bg-gray-200 rounded-t-lg -mx-6 -mt-6">
+                        <img src="https://placehold.co/800x200/a3bde3/ffffff?text=Banner+Profesional"
+                            alt="Banner profesional" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex items-end -mt-16 ml-4">
+                        <div
+                            class="w-32 h-32 bg-gray-300 rounded-full border-4 border-white flex items-center justify-center overflow-hidden">
+                            <img id="profile-pic" src="https://placehold.co/128x128/e0e0e0/757575?text=?" alt="Avatar">
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <h1 id="profile-name" class="text-2xl font-bold text-gray-900">Nombre del Candidato</h1>
+                        <p id="profile-area" class="text-md text-gray-600">Área de especialización</p>
+                        <p id="profile-location" class="text-sm text-gray-500 mt-1">Lugar de Trabajo</p>
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="text-sm font-semibold text-gray-600">FUERZA DEL PERFIL</h3>
+                        <div class="profile-strength-bar mt-1">
+                            <div id="profile-strength-progress" class="profile-strength-progress"></div>
+                        </div>
+                        <p id="profile-strength-text" class="text-sm font-bold text-blue-700 mt-1"></p>
+                    </div>
+                </div>
+
+                <!-- Tarjeta "Acerca de" -->
+                <div class="profile-card shadow-md">
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Acerca de</h2>
+                    <p class="text-gray-500 mb-2">Este es el objetivo principal del candidato en su puesto. ¡Elige la
+                        descripción correcta!</p>
+                    <select id="select-objetivo" class="form-select"></select>
+                </div>
+
+                <!-- Tarjeta "Experiencia" -->
+                <div class="profile-card shadow-md">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Experiencia</h2>
+                    <div class="flex flex-col gap-4">
+                        <div>
+                            <label class="font-semibold text-gray-700">Principales Funciones</label>
+                            <select id="select-funciones" class="form-select mt-1"></select>
+                        </div>
+                        <div>
+                            <label class="font-semibold text-gray-700">Tareas Clave</label>
+                            <select id="select-tareas" class="form-select mt-1"></select>
+                        </div>
+                        <div>
+                            <label class="font-semibold text-gray-700">Años de experiencia requeridos</label>
+                            <select id="select-experiencia" class="form-select mt-1"></select>
+                        </div>
+                        <div>
+                            <label class="font-semibold text-gray-700">Reporta a (Dirección)</label>
+                            <select id="select-direccion" class="form-select mt-1"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta "Educación" -->
+                <div class="profile-card shadow-md">
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Educación</h2>
+                    <label class="font-semibold text-gray-700">Formación Académica</label>
+                    <select id="select-formacion" class="form-select mt-1"></select>
+                </div>
+
+                <!-- Tarjeta "Aptitudes" -->
+                <div class="profile-card shadow-md">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Aptitudes y Conocimientos</h2>
+                    <div class="flex flex-col gap-4">
+                        <div>
+                            <label class="font-semibold text-gray-700">Conocimientos Formales</label>
+                            <select id="select-conocimientos" class="form-select mt-1"></select>
+                        </div>
+                        <div>
+                            <label class="font-semibold text-gray-700">Especialización de la Unidad</label>
+                            <select id="select-unidad" class="form-select mt-1"></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Resumen del Puesto y Pistas -->
+            <div class="lg:col-span-1 flex flex-col gap-6">
+                <div class="bg-white p-4 rounded-lg shadow-md border sticky top-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Descripción del Cargo</h2>
+                    <p class="text-sm text-gray-500 mb-4">Lee atentamente el siguiente texto para encontrar la
+                        información y completar el perfil del candidato.</p>
+                    <div id="texto-container" class="bg-gray-50 p-3 border rounded-md max-h-[500px] overflow-y-auto">
+                        <p class="text-gray-600">Presiona "Buscar Nuevo Candidato" para comenzar.</p>
+                    </div>
+                    <div class="mt-4 p-3 bg-amber-100 border border-amber-300 rounded-md">
+                        <h3 class="font-bold text-amber-800">Interacciones Clave</h3>
+                        <div class="flex flex-col gap-2 mt-2">
+                            <div>
+                                <label class="text-sm font-semibold text-gray-700">Relaciones Internas</label>
+                                <select id="select-relacionesInternas" class="form-select mt-1"></select>
+                            </div>
+                            <div>
+                                <label class="text-sm font-semibold text-gray-700">Relaciones Externas</label>
+                                <select id="select-relacionesExternas" class="form-select mt-1"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-red-100 border border-red-300 rounded-md">
+                        <h3 class="font-bold text-red-800">Condiciones y Riesgos</h3>
+                        <div class="flex flex-col gap-2 mt-2">
+                            <div>
+                                <label class="text-sm font-semibold text-gray-700">Riesgos del Puesto</label>
+                                <select id="select-riesgos" class="form-select mt-1"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="score-container" class="mt-4 text-center">
+                        <p class="text-lg font-semibold text-gray-800 bg-green-200 px-3 py-1 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="inline-block mr-1 h-5 w-5">
+                                <path d="M12.22 2h-4.44a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.34" />
+                                <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z" />
+                            </svg>
+                            Perfiles Completados: <span id="correct-cases-count">0</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const data = {
+            caso1: {
+                title: "Coordinador/a de Logística (Transportes)",
+                text: `La empresa "Transportes Veloz" necesita un Coordinador de Logística para su centro de distribución en Santiago. El objetivo principal del puesto es asegurar que los despachos de productos se realicen de manera eficiente y puntual. La persona seleccionada será responsable de planificar las rutas diarias de los camiones, optimizando los tiempos y costos. Para ello, deberá asignar los vehículos a los transportistas cada mañana, verificar la correcta carga de la mercancía y mantener una comunicación constante con los conductores durante su recorrido. También se encargará de resolver cualquier incidencia que pueda surgir en la ruta. Este rol exige una coordinación diaria con el equipo de Bodega para confirmar la disponibilidad de productos y con el área de Ventas para conocer los pedidos de los clientes. Ocasionalmente, deberá contactar a proveedores de transporte externos para solicitar apoyo en temporadas de alta demanda. El trabajo se realiza presencialmente en el centro de distribución, un lugar con alto flujo de maquinaria pesada, por lo que el uso de elementos de seguridad es obligatorio. Se requiere formación técnica en Logística o carrera afín y al menos 2 años de experiencia en cargos similares.`
+            },
+            caso2: {
+                title: "Asistente de Marketing Digital (Agencia)",
+                text: `En la agencia "Creatividad Infinita", buscamos un Asistente de Marketing Digital para unirse a nuestro equipo de Comunicaciones. El propósito del cargo es apoyar en la ejecución de las campañas digitales de nuestros clientes para aumentar su visibilidad en línea. Sus funciones principales incluyen la gestión de redes sociales y la creación de contenido. Diariamente, deberá programar las publicaciones para Instagram y Facebook, responder comentarios y mensajes de la comunidad, y redactar textos breves para los posts. Además, colaborará en la elaboración de un informe mensual de resultados, midiendo el alcance y la interacción de las publicaciones. Para este puesto, es fundamental el trabajo en equipo con los Diseñadores Gráficos y con los Ejecutivos de Cuentas. El lugar de trabajo es en nuestra oficina en Providencia, con modalidad híbrida. Buscamos a alguien con estudios en Publicidad, Periodismo o similar. No se requiere experiencia previa, pero sí conocimientos demostrables en manejo de redes sociales.`
+            },
+            caso3: {
+                title: "Jefe de Control de Calidad (Alimentos)",
+                text: `Una empresa productora de alimentos requiere un Jefe de Control de Calidad para su planta de producción, reportando al Gerente de Planta. El objetivo principal es asegurar que todos los productos cumplan con las normativas sanitarias y los estándares internos de la compañía. Será responsable de supervisar al equipo de inspectores de calidad, gestionar el laboratorio de análisis, y liderar las auditorías internas y externas (HACCP, BPM). Diariamente, deberá revisar los reportes de producción, liberar o rechazar lotes de productos y capacitar al personal en buenas prácticas de manufactura. Es vital la comunicación con el área de Producción para corregir desviaciones y con el área de Compras para validar la calidad de las materias primas. Se exige título de Ingeniero en Alimentos o carrera afín y 5 años de experiencia en la industria alimenticia.`
+            },
+            caso4: {
+                title: "Analista de Datos (Retail)",
+                text: `Una empresa de retail busca un Analista de Datos para su Gerencia Comercial. El objetivo del puesto es analizar las tendencias de ventas y el comportamiento de los clientes para generar insights que apoyen la toma de decisiones estratégicas. El analista será responsable de extraer y procesar grandes volúmenes de datos usando SQL y Python. Sus tareas diarias incluyen la creación de dashboards y visualizaciones en Power BI, la elaboración de informes periódicos para la gerencia y la presentación de sus hallazgos al equipo de marketing. Es crucial la colaboración con el área de TI para asegurar la calidad y disponibilidad de los datos. Se requiere un título en Estadística, Ingeniería Informática o carrera afín, y un mínimo de 2 años de experiencia en roles similares. La modalidad de trabajo es híbrida.`
+            },
+            caso5: {
+                title: "Gerente de RRHH (Startup)",
+                text: `Una startup tecnológica en crecimiento necesita un Gerente de Recursos Humanos que reporte directamente al CEO. El objetivo principal es supervisar el ciclo de vida completo del empleado, desde la atracción hasta la desvinculación. Será responsable de liderar los procesos de reclutamiento y selección, coordinar el onboarding de nuevos talentos, administrar el sistema de gestión del desempeño y desarrollar iniciativas que fortalezcan la cultura de la empresa. Deberá trabajar de cerca con los líderes de todas las áreas para entender sus necesidades de personal. Ocasionalmente, tratará con consultoras externas para búsquedas de perfiles ejecutivos. Buscamos un profesional con al menos 5 años de experiencia en RRHH, preferiblemente en el sector tecnológico. El rol es 100% remoto.`
+            },
+            caso6: {
+                title: "Contador General (Constructora)",
+                text: `Una empresa constructora requiere un Contador General para su área de Finanzas. La persona dependerá del Gerente de Finanzas y su objetivo será gestionar los registros financieros de la compañía, asegurando el cumplimiento de las normativas vigentes. Sus funciones principales son la preparación de declaraciones de impuestos mensuales y anuales, la ejecución de los cierres contables y el análisis de cuentas. Diariamente, registrará transacciones, conciliará cuentas bancarias y emitirá informes para la gerencia. Mantendrá contacto directo con el Servicio de Impuestos Internos (SII) y con auditores externos durante las revisiones anuales. Se requiere título de Contador Auditor y 3 años de experiencia. Es indispensable un conocimiento sólido de las leyes tributarias locales. El trabajo es presencial en la oficina principal.`
+            },
+            caso7: {
+                title: "Ejecutivo de Ventas (SaaS)",
+                text: `Una compañía SaaS (Software as a Service) está contratando un Ejecutivo de Ventas para su equipo comercial. El objetivo del cargo es vender un software de gestión de proyectos a nuevos clientes corporativos (B2B). El rol implica un ciclo de venta completo: desde la prospección de clientes potenciales y el primer contacto, pasando por la realización de demostraciones del software, hasta la negociación y el cierre de los contratos. Deberá colaborar estrechamente con el equipo de marketing para alinear estrategias de generación de leads y con el equipo de soporte para asegurar una buena experiencia post-venta. Se requiere experiencia de 2 años en ventas B2B, idealmente de software, y excelentes habilidades de comunicación. El trabajo es en modalidad híbrida y la compensación incluye un sueldo base más comisiones por ventas.`
+            },
+            caso8: {
+                title: "Diseñador UX/UI (App Móvil)",
+                text: `Una empresa de desarrollo de aplicaciones móviles busca un Diseñador UX/UI para su equipo de Producto. El objetivo es diseñar experiencias de usuario intuitivas y atractivas para nuevas funcionalidades de la app. El diseñador será responsable de todo el proceso de diseño, desde la investigación de usuarios y la creación de user flows, hasta el diseño de wireframes y mockups de alta fidelidad. Sus tareas incluyen la creación de prototipos interactivos en Figma y la colaboración directa con Product Managers para definir requerimientos y con Desarrolladores para asegurar una correcta implementación. Se requiere un portafolio que demuestre experiencia en diseño de apps y al menos 3 años de experiencia. El trabajo es 100% remoto.`
+            },
+            caso9: {
+                title: "Jefe de Bodega (Alimentos)",
+                text: `Una empresa de distribución de alimentos busca un Jefe de Bodega para su centro de distribución principal. El objetivo del puesto es garantizar la eficiencia y seguridad de todas las operaciones de la bodega. Será responsable de gestionar el inventario, supervisar a un equipo de 20 operarios, y asegurar el cumplimiento de los protocolos de seguridad y calidad. Sus funciones incluyen la planificación de la recepción y despacho de mercancías, la optimización del layout de la bodega para maximizar el espacio, y el control de la rotación de productos (FIFO). Deberá coordinarse con el área de Compras para gestionar el stock y con Logística para la planificación de despachos. Se necesita experiencia de 4 años en un rol similar y es crucial el manejo de algún sistema de gestión de bodegas (WMS).`
+            },
+
+            answers: {},
+            options: {}
+        };
+
+        function initializeData() {
+            // Respuestas Correctas
+            data.answers.caso1 = { nombreCargo: "Coordinador de Logística", area: "Logística", direccion: "No especificado.", unidad: "Centro de distribución", objetivo: "Asegurar que los despachos de productos se realicen de manera eficiente y puntual.", funciones: "Planificar las rutas diarias de los camiones, optimizando los tiempos y costos.", tareas: "Asignar vehículos, verificar carga, comunicación con conductores, resolver incidencias.", relacionesInternas: "Coordinación diaria con Bodega y Ventas.", relacionesExternas: "Proveedores de transporte externos.", formacion: "Técnica en Logística o afín.", experiencia: "2 años.", conocimientos: "No especificado.", lugar: "Centro de distribución en Santiago.", riesgos: "Alto flujo de maquinaria pesada." };
+            data.answers.caso2 = { nombreCargo: "Asistente de Marketing Digital", area: "Marketing", direccion: "No especificado.", unidad: "Comunicaciones", objetivo: "Apoyar en la ejecución de las campañas digitales de los clientes para aumentar su visibilidad en línea.", funciones: "Gestión de redes sociales y creación de contenido.", tareas: "Programar publicaciones, responder comentarios, redactar textos y elaborar informes.", relacionesInternas: "Diseñadores Gráficos y Ejecutivos de Cuentas.", relacionesExternas: "Clientes de la agencia.", formacion: "Publicidad, Periodismo o similar.", experiencia: "No se requiere.", conocimientos: "Manejo de redes sociales.", lugar: "Oficina en Providencia, modalidad híbrida.", riesgos: "No especificado." };
+            data.answers.caso3 = { nombreCargo: "Jefe de Control de Calidad", area: "Producción", direccion: "Gerencia de Planta", unidad: "Control de Calidad", objetivo: "Asegurar que todos los productos cumplan con las normativas sanitarias y los estándares internos.", funciones: "Supervisar inspectores, gestionar laboratorio y liderar auditorías (HACCP, BPM).", tareas: "Revisar reportes, liberar/rechazar lotes y capacitar al personal.", relacionesInternas: "Área de Producción y Compras.", relacionesExternas: "Auditores externos.", formacion: "Ingeniero en Alimentos o afín.", experiencia: "5 años.", conocimientos: "Normativas sanitarias, HACCP, BPM.", lugar: "Planta de producción.", riesgos: "No especificado." };
+            data.answers.caso4 = { nombreCargo: "Analista de Datos", area: "Comercial", direccion: "Gerencia Comercial", unidad: "Análisis de Datos", objetivo: "Analizar tendencias de ventas y comportamiento de clientes para generar insights.", funciones: "Extraer y procesar grandes volúmenes de datos usando SQL y Python.", tareas: "Crear dashboards en Power BI, elaborar informes y presentar hallazgos.", relacionesInternas: "Área de TI y equipo de marketing.", relacionesExternas: "No especificado.", formacion: "Estadística, Ingeniería Informática o afín.", experiencia: "2 años.", conocimientos: "SQL, Python, Power BI.", lugar: "Modalidad híbrida.", riesgos: "No especificado." };
+            data.answers.caso5 = { nombreCargo: "Gerente de Recursos Humanos", area: "RRHH", direccion: "CEO", unidad: "Gestión de Personas", objetivo: "Supervisar el ciclo de vida completo del empleado, desde la atracción hasta la desvinculación.", funciones: "Liderar reclutamiento, coordinar onboarding y administrar gestión del desempeño.", tareas: "Desarrollar iniciativas de cultura, entender necesidades de personal.", relacionesInternas: "Líderes de todas las áreas.", relacionesExternas: "Consultoras externas.", formacion: "No especificado.", experiencia: "5 años.", conocimientos: "Preferiblemente en sector tecnológico.", lugar: "100% remoto.", riesgos: "No especificado." };
+            data.answers.caso6 = { nombreCargo: "Contador General", area: "Finanzas", direccion: "Gerencia de Finanzas", unidad: "Contabilidad", objetivo: "Gestionar los registros financieros de la compañía, asegurando el cumplimiento normativo.", funciones: "Preparación de impuestos, cierres contables y análisis de cuentas.", tareas: "Registrar transacciones, conciliar cuentas bancarias y emitir informes.", relacionesInternas: "Gerencia.", relacionesExternas: "Servicio de Impuestos Internos (SII) y auditores externos.", formacion: "Contador Auditor.", experiencia: "3 años.", conocimientos: "Sólido conocimiento de leyes tributarias locales.", lugar: "Oficina principal (presencial).", riesgos: "No especificado." };
+            data.answers.caso7 = { nombreCargo: "Ejecutivo de Ventas", area: "Comercial", direccion: "No especificado.", unidad: "Ventas B2B", objetivo: "Vender un software de gestión de proyectos a nuevos clientes corporativos (B2B).", funciones: "Ciclo de venta completo: prospección, demostraciones, negociación y cierre.", tareas: "Colaborar con marketing para generación de leads.", relacionesInternas: "Equipo de marketing y soporte.", relacionesExternas: "Clientes corporativos.", formacion: "No especificado.", experiencia: "2 años.", conocimientos: "Ventas B2B, idealmente de software.", lugar: "Modalidad híbrida.", riesgos: "No especificado." };
+            data.answers.caso8 = { nombreCargo: "Diseñador UX/UI", area: "Producto", direccion: "No especificado.", unidad: "Diseño de Producto", objetivo: "Diseñar experiencias de usuario intuitivas y atractivas para nuevas funcionalidades de la app.", funciones: "Investigación de usuarios, creación de user flows, diseño de wireframes y mockups.", tareas: "Creación de prototipos interactivos en Figma.", relacionesInternas: "Product Managers y Desarrolladores.", relacionesExternas: "Usuarios de la app.", formacion: "No especificado.", experiencia: "3 años.", conocimientos: "Portafolio en diseño de apps, Figma.", lugar: "100% remoto.", riesgos: "No especificado." };
+            data.answers.caso9 = { nombreCargo: "Jefe de Bodega", area: "Logística", direccion: "No especificado.", unidad: "Centro de distribución", objetivo: "Garantizar la eficiencia y seguridad de todas las operaciones de la bodega.", funciones: "Gestionar inventario, supervisar a 20 operarios y asegurar cumplimiento de protocolos.", tareas: "Planificar recepción/despacho, optimizar layout, controlar rotación FIFO.", relacionesInternas: "Área de Compras y Logística.", relacionesExternas: "No especificado.", formacion: "No especificado.", experiencia: "4 años.", conocimientos: "Manejo de sistema WMS.", lugar: "Centro de distribución.", riesgos: "No especificado." };
+
+            function generateDistractors(field, correctAnswer) {
+                const pool = {
+                    nombreCargo: ["Jefe de Bodega", "Asistente de Marketing", "Gerente de RRHH", "Contador General", "Diseñador UX/UI", "Analista de Datos", "Supervisor de Producción"],
+                    area: ["Ventas", "Operaciones", "Finanzas", "Tecnología", "Producción", "Recursos Humanos"],
+                    direccion: ["Gerencia General", "Dirección Comercial", "Subgerencia de TI", "Departamento de Finanzas", "Gerencia de Operaciones", "Gerencia de Planta", "CEO"],
+                    unidad: ["Ventas Online", "Soporte Técnico", "Tesorería", "Relaciones Laborales", "Logística Inversa", "Control de Gestión"],
+                    objetivo: ["Reducir costos operativos en un 20%", "Aumentar la satisfacción del cliente", "Implementar un nuevo software ERP", "Desarrollar un nuevo producto", "Expandir la empresa a nuevos mercados"],
+                    funciones: ["Realizar auditorías internas", "Gestionar campañas en redes sociales", "Negociar con proveedores", "Desarrollar código para la web", "Reclutar nuevo personal"],
+                    tareas: ["Pagar sueldos", "Diseñar folletos", "Formatear computadores", "Archivar documentos", "Llamar a clientes morosos", "Limpiar la oficina"],
+                    relacionesInternas: ["Equipo de Finanzas", "Departamento de TI", "Área de Marketing", "Gerencia General", "Recursos Humanos"],
+                    relacionesExternas: ["Proveedores", "Clientes", "Agencias de publicidad", "Bancos", "Servicio de Impuestos Internos"],
+                    formacion: ["Ingeniería Comercial", "Psicología", "Diseño Gráfico", "Contador Auditor", "Técnico Jurídico", "Periodismo"],
+                    experiencia: ["Menos de 1 año", "1 año", "4 años", "6 años", "10 años", "No se requiere"],
+                    conocimientos: ["Normas ISO 9001", "Legislación tributaria", "Software de diseño Adobe", "Lenguajes de programación", "Técnicas de venta", "Primeros auxilios"],
+                    lugar: ["Modalidad 100% remota", "Oficina central", "En terreno visitando clientes", "Planta de producción", "Centro de distribución", "Modalidad Híbrida"],
+                    riesgos: ["Trabajo en altura", "Exposición a químicos", "Riesgos ergonómicos", "Estrés laboral", "Accidentes de tránsito", "Bajo riesgo (oficina)"]
+                };
+                let distractors = new Set();
+                while (distractors.size < 5) {
+                    const randomDistractor = pool[field][Math.floor(Math.random() * pool[field].length)];
+                    if (randomDistractor.toLowerCase() !== correctAnswer.toLowerCase()) {
+                        distractors.add(randomDistractor);
+                    }
+                }
+                return Array.from(distractors);
+            }
+
+            Object.keys(data.answers).forEach(caseKey => {
+                const distractors = {};
+                const variant = data.answers[caseKey];
+                Object.keys(variant).forEach(field => {
+                    distractors[field] = generateDistractors(field, variant[field]);
+                });
+                data.options[caseKey] = distractors;
+            });
+        }
+
+        initializeData();
+
+        const btnNewCase = document.getElementById('btnNewCase');
+        const btnHints = document.getElementById('btnHints');
+        const btnCheck = document.getElementById('btnCheck');
+        const btnShowAnswers = document.getElementById('btnShowAnswers');
+        const btnClear = document.getElementById('btnClear');
+        const textoContainer = document.getElementById('texto-container');
+        const formSelects = document.querySelectorAll('.form-select');
+        const profileName = document.getElementById('profile-name');
+        const profileArea = document.getElementById('profile-area');
+        const profileLocation = document.getElementById('profile-location');
+        const strengthProgress = document.getElementById('profile-strength-progress');
+        const strengthText = document.getElementById('profile-strength-text');
+        const profilePic = document.getElementById('profile-pic');
+
+        const completionMessage = document.getElementById('completion-message');
+        const correctCasesCounter = document.getElementById('correct-cases-count');
+
+        let currentCaseKey = null;
+        let correctCasesCount = 0;
+        let currentCaseCounted = false;
+        let answersWereShown = false;
+
+        const shuffleArray = (array) => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+
+        function updateScore() {
+            if (!currentCaseKey) return;
+
+            const correctAnswers = data.answers[currentCaseKey];
+            let correctCount = 0;
+            const fieldsToCheck = [...formSelects].map(s => s.id.replace('select-', ''));
+
+            fieldsToCheck.forEach(field => {
+                const select = document.getElementById(`select-${field}`);
+                if (select && select.value && select.value === correctAnswers[field]) {
+                    correctCount++;
+                }
+            });
+
+            const totalFields = fieldsToCheck.length;
+            const percentage = totalFields > 0 ? (correctCount / totalFields) * 100 : 0;
+            strengthProgress.style.width = `${percentage}%`;
+
+            if (percentage < 30) {
+                strengthText.textContent = "Perfil Principiante";
+                strengthProgress.className = 'profile-strength-progress bg-red-500';
+            } else if (percentage < 70) {
+                strengthText.textContent = "Perfil Intermedio";
+                strengthProgress.className = 'profile-strength-progress bg-yellow-500';
+            } else if (percentage < 100) {
+                strengthText.textContent = "Perfil Avanzado";
+                strengthProgress.className = 'profile-strength-progress bg-blue-700';
+            } else {
+                strengthText.textContent = "¡PERFIL ESTELAR!";
+                strengthProgress.className = 'profile-strength-progress bg-green-500';
+            }
+
+            if (correctCount === totalFields) {
+                if (answersWereShown) {
+                    completionMessage.textContent = '¡PERFIL AUTOCOMPLETADO!';
+                    completionMessage.className = 'font-semibold mt-2 h-6 text-center text-red-500 text-xl';
+                } else {
+                    completionMessage.textContent = '¡Excelente! ¡Has completado el perfil correctamente!';
+                    completionMessage.className = 'font-semibold mt-2 h-6 text-center text-green-600';
+                    if (!currentCaseCounted) {
+                        correctCasesCount++;
+                        correctCasesCounter.textContent = correctCasesCount;
+                        currentCaseCounted = true;
+                    }
+                }
+            } else {
+                completionMessage.textContent = '';
+            }
+        }
+
+        function populateSelects() {
+            if (!currentCaseKey) return;
+            const correctAnswers = data.answers[currentCaseKey];
+            const options = data.options[currentCaseKey];
+
+            formSelects.forEach(select => {
+                const field = select.id.replace('select-', '');
+                select.innerHTML = '';
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.textContent = "Selecciona una opción";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                select.appendChild(defaultOption);
+
+                const allOptions = [correctAnswers[field], ...options[field]];
+                const shuffledOptions = shuffleArray(allOptions);
+
+                shuffledOptions.forEach(opt => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = opt;
+                    optionElement.textContent = opt;
+                    select.appendChild(optionElement);
+                });
+            });
+        }
+
+        function displayCurrentCase(highlight = false) {
+            if (!currentCaseKey) return;
+            const caseData = data[currentCaseKey];
+            const correctAnswers = data.answers[currentCaseKey];
+            let text = caseData.text;
+
+            // Populate header
+            profileName.textContent = correctAnswers.nombreCargo;
+            profileArea.textContent = `Profesional del área de ${correctAnswers.area}`;
+            profileLocation.textContent = correctAnswers.lugar;
+            profilePic.src = `https://placehold.co/128x128/a3bde3/ffffff?text=${correctAnswers.nombreCargo.substring(0, 1)}`;
+
+            // Populate text box
+            if (highlight) {
+                const allCorrectAnswers = Object.values(correctAnswers);
+                const uniqueHints = [...new Set(allCorrectAnswers)].sort((a, b) => b.length - a.length);
+                uniqueHints.forEach(hint => {
+                    if (hint && hint.toLowerCase() !== "no especificado.") {
+                        const regex = new RegExp(hint.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
+                        text = text.replace(regex, `<span class="highlight">$&</span>`);
+                    }
+                });
+            }
+
+            textoContainer.innerHTML = `<p class="text-gray-700 leading-relaxed">${text}</p>`;
+            [btnHints, btnCheck, btnShowAnswers, btnClear].forEach(btn => btn.disabled = false);
+        }
+
+        function loadRandomCase() {
+            const caseKeys = Object.keys(data).filter(k => k.startsWith('caso'));
+            currentCaseKey = caseKeys[Math.floor(Math.random() * caseKeys.length)];
+
+            answersWereShown = false;
+            currentCaseCounted = false;
+
+            formSelects.forEach(s => s.className = 'form-select');
+            completionMessage.textContent = '';
+            populateSelects();
+            displayCurrentCase();
+            updateScore();
+        }
+
+        btnNewCase.addEventListener('click', loadRandomCase);
+        btnHints.addEventListener('click', () => displayCurrentCase(true));
+
+        btnCheck.addEventListener('click', () => {
+            if (!currentCaseKey) return;
+            const correctAnswers = data.answers[currentCaseKey];
+            formSelects.forEach(select => {
+                const field = select.id.replace('select-', '');
+                if (select.value === "") return;
+                select.className = select.value === correctAnswers[field] ? 'form-select correct-answer' : 'form-select incorrect-answer';
+            });
+        });
+
+        btnShowAnswers.addEventListener('click', () => {
+            if (!currentCaseKey) return;
+            currentCaseCounted = true;
+            answersWereShown = true;
+            const correctAnswers = data.answers[currentCaseKey];
+            formSelects.forEach(select => {
+                const field = select.id.replace('select-', '');
+                select.value = correctAnswers[field];
+                select.className = 'form-select correct-answer';
+            });
+            updateScore();
+        });
+
+        btnClear.addEventListener('click', () => {
+            if (currentCaseKey) {
+                populateSelects();
+                formSelects.forEach(s => s.className = 'form-select');
+                displayCurrentCase();
+                updateScore();
+            }
+        });
+
+        formSelects.forEach(select => select.addEventListener('change', updateScore));
+
+        // Initial state
+        [btnHints, btnCheck, btnShowAnswers, btnClear].forEach(btn => btn.disabled = true);
+        strengthText.textContent = "Completa el perfil";
+    </script>
+</body>
+
+</html>
